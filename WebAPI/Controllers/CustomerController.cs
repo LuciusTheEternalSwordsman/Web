@@ -14,24 +14,22 @@ namespace WebAPI.Controllers
     [ApiController]
     public class CustomerController : ControllerBase
     {
-        private CustomerContext db;
+        public bool success=false;
+       
         IRepository<Customer> db1;
         public CustomerController(CustomerContext context)
-        {
-            db = context;
+        {            
             db1 = new CustomerService(context);
         }
         //GET all action
         [HttpGet]
-        public ActionResult<List<Customer>> GetAll()
-        {
+        public ActionResult<List<Customer>> GetAll()=> db1.GetCustomersList().OrderBy(u => u.CustomerNumber).ToList();
+        /*{
             var customer = db1.GetCustomersList().OrderBy(u=>u.Id).ToList();
-            // return customer;
+            
             return customer;
-        }
-
-        //public ActionResult<List<Customer>> GetAll() => CustomerService.GetAll();
-
+        }*/
+        
         //GET by Id action
         [HttpGet("{id}")]
         public ActionResult<Customer> Get(int id)
@@ -45,17 +43,20 @@ namespace WebAPI.Controllers
         [HttpPost]
         public IActionResult Create(Customer customer)
         {
-            if (ModelState.IsValid)
+            try
             {
-                db1.Create(customer);
-                db1.Save();
-                return RedirectToAction("GetAll");
+                if (ModelState.IsValid)
+                {
+                    db1.Create(customer);
+                    db1.Save();
+                    success = true;
+                }
+                else throw new Exception("Success failure");
+                if (success)
+                    return Ok("Customer Number: "+customer.CustomerNumber.ToString());
+                else return BadRequest();
             }
-            //db.Customers.Add(customer);
-            //db.SaveChangesAsync();
-            return RedirectToAction("GetAll"); ;
-            //CustomerService.Add(customer);
-            //return CreatedAtAction(nameof(Create), new { id = customer.Id }, customer);
+            catch(Exception ex) { return BadRequest(ex.Message); }
         }
         //PUT action
         [Route("UpdateCustomer")]
@@ -68,16 +69,14 @@ namespace WebAPI.Controllers
                 {
                     db1.Update(customer);
                     db1.Save();
-                    return RedirectToAction("GetAll");
+                   // return Ok("Customer number "+customer.CustomerNumber.ToString());
+                    //return RedirectToAction("GetAll");
                 }
-                return NotFound();
+                return Ok("Customer number " + customer.CustomerNumber.ToString());
+                //else throw new Exception("Not valid CustomerNumber "+customer.CustomerNumber.ToString());
             }
-            catch { return NotFound(); ; }
-            /*if (id != customer.Id) return BadRequest();
-            var existingCustomer = db1.GetCustomer(id);
-            if (existingCustomer is null) return NotFound();
-            db1.Update(customer);
-            return NoContent();*/
+            catch(Exception ex) { return BadRequest("Error: "+ex.Message+"\n Customer number to update: "+customer.CustomerNumber.ToString()); }  
+            //catch(Exception ex) { return "Error: "+ex.Message; }
         }
         //DELETE action
         [HttpDelete]
