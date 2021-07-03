@@ -10,6 +10,7 @@ namespace WebAPI.Services
         where T:class
     {
         IEnumerable<T> GetCustomersList();
+        IAsyncEnumerable<T> GetCustomersAsyncList();
         T GetCustomer(int id);
         void Create(T item);
         void Update(int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg);

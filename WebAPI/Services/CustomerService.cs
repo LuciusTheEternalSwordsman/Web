@@ -19,6 +19,10 @@ namespace WebAPI.Services
             //using (CustomerContext context = new CustomerContext())        {           }
             return db.Customers;
         }
+        public IAsyncEnumerable<Customer> GetCustomersAsyncList()
+        {
+            return db.Customers;
+        }
         public Customer GetCustomer(int id)
         {         
             
