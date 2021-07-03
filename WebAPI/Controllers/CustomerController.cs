@@ -17,9 +17,13 @@ namespace WebAPI.Controllers
         public bool success=false;
        
         IRepository<Customer> db1;
+        IValidator<Customer> vs;
+        Response response;
         public CustomerController(CustomerContext context)
         {            
             db1 = new CustomerService(context);
+            vs = new ValidationService();
+            response = new Response() { Success = true, ErrorMessage = "", ValidationMessage = new Dictionary<int, string>(), CustomerNumber = 0 };
         }
         //GET all action
         [HttpGet]
@@ -39,36 +43,46 @@ namespace WebAPI.Controllers
         public IActionResult Create(string password, string surname,string firstName,string address1,string postcode,string town,string phoneNumber1,string email,DateTime dtChanged,string updatedBy)
         {
             try
-            {
-                int i = 0;
+            {                
                 Customer customer = new Customer(password,surname,firstName,address1,postcode,town,phoneNumber1,email,dtChanged,updatedBy);
-                if (ModelState.IsValid)
-                {
-
-                    i = db1.Create(customer);
-                    if (i == -1) return BadRequest();
-                    else db1.Save();                    
-                }
-                return Ok("Customer Number: "+customer.CustomerNumber.ToString());
-                
+                if (vs.IsValid(customer))
+                    {
+                        db1.Create(customer);
+                        db1.Save();
+                    }
+                    else return BadRequest("\n Null values") ;
+                return Ok("Customer Number: "+customer.CustomerNumber.ToString());                
             }
             catch(Exception ex) { return BadRequest(ex.Message); }
         }
         //PUT action
         [Route("UpdateCustomer")]
         [HttpPost]
-        public IActionResult Update(int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg)
+        public ActionResult<Response> Update(int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg)
         {
             try
             {
-                if (ModelState.IsValid)
+                if (vs.IsValid(id))
                 {
-                    db1.Update(id,address1,postcode,town,phonenum1,email,datechg);
-                    db1.Save();                   
+                    db1.Update(id, address1, postcode, town, phonenum1, email, datechg);
+                    db1.Save();
+                    response.CustomerNumber = id;
+                    response.ValidationMessage.Add(1, "this is OK");
+                    return Ok(response.CustomerNumber);
                 }
-                return Ok("Customer number " + id.ToString()); ;                
+                return BadRequest(response.Success);
+                               
             }
-            catch(Exception ex) { return BadRequest("Code: "+BadRequest().StatusCode.ToString()+"\nError text: "+ex.Message+"\n Customer number to update: "+id.ToString()); }  
+            catch(Exception ex) 
+            {
+                string result = "";
+                response.Success = false;
+                response.ErrorMessage = ex.Message;
+                response.ValidationMessage.Add(BadRequest().StatusCode,BadRequest().ToString());
+                foreach (var r in response.ValidationMessage) result += r.Key + r.Value;
+                return Content(result);
+                //return BadRequest("Code: "+BadRequest().StatusCode.ToString()+"\nError text: "+ex.Message+"\n Customer number to update: "+id.ToString()); 
+            }  
             //catch(Exception ex) { return "Error: "+ex.Message; }
         }
         //DELETE action

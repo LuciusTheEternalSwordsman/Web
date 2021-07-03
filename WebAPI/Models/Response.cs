@@ -9,7 +9,7 @@ namespace WebAPI.Models
     {
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
-        public Dictionary<int,int> ValidationMessage { get; set; }
+        public Dictionary<int,string> ValidationMessage { get; set; }
         public int CustomerNumber { get; set; }
     }
 }
