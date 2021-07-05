@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace WebAPI.Services
+{
+    interface IRespons<T>
+        where T:class
+    {
+        T FResponse(bool success);
+        T TResponse(bool succes);
+    }
+}

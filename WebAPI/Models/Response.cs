@@ -9,7 +9,12 @@ namespace WebAPI.Models
     {
         public bool Success { get; set; }
         public string ErrorMessage { get; set; }
-        public Dictionary<int,string> ValidationMessage { get; set; }
+        public List<ValidMess> ValidationMessage { get; set; }
         public int CustomerNumber { get; set; }
+    }
+    public class ValidMess
+    {
+        public int Code { get; set; }
+        public string Message { get; set; }
     }
 }

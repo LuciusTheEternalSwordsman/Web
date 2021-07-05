@@ -14,6 +14,7 @@ using Microsoft.OpenApi.Models;
 using WebAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace WebAPI
 {
     public class Startup
@@ -32,7 +33,7 @@ namespace WebAPI
             string connection = Configuration.GetConnectionString("PostgreConnectionString");
             services.AddDbContext<CustomerContext>(options => options.UseNpgsql(connection));
             //services.AddDbContext<CustomerContext>(opt => opt.UseInMemoryDatabase("CustomerList"));
-            services.AddControllers();
+            services.AddControllers(); 
             services.AddSwaggerGen(c =>
             { 
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebAPI", Version = "v1" });

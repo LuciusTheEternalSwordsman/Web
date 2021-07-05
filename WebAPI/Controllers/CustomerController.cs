@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using WebAPI.Models;
 using WebAPI.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace WebAPI.Controllers
 {
@@ -16,21 +18,21 @@ namespace WebAPI.Controllers
     {
         public bool success=false;
        
-        IRepository<Customer> db1;
+        IRepository<Customer,UpdateCustomer> db1;
         IValidator<Customer> vs;
         Response response;
         public CustomerController(CustomerContext context)
         {            
             db1 = new CustomerService(context);
             vs = new ValidationService();
-            response = new Response() { Success = true, ErrorMessage = "", ValidationMessage = new Dictionary<int, string>(), CustomerNumber = 0 };
+            response = new Response() { Success = true, ErrorMessage = "", ValidationMessage = new List<ValidMess>(), CustomerNumber = 0 };
         }
         //GET all action
         [HttpGet]
         [Consumes("application/json")]
         public ActionResult<List<Customer>> GetAll()=> db1.GetCustomersList().OrderBy(u => u.CustomerNumber).ToList();
         
-        [HttpGet("async")]
+       /* [HttpGet("async")]
         public async IAsyncEnumerable<Customer> GetCustomers()
         {
             var customers = db1.GetCustomersAsyncList();
@@ -38,7 +40,7 @@ namespace WebAPI.Controllers
             {
                 yield return customer;
             }
-        }
+        }*/
         //GET by Id action
         [HttpGet("{id}")]
         [Consumes("application/json")]
@@ -48,14 +50,14 @@ namespace WebAPI.Controllers
             if (customer == null) return NotFound();
             return customer;
         }
-        //POST action        
+        //POST action  string password, string surname,string firstName,string address1,string postcode,string town,string phoneNumber1,string email,DateTime dtChanged,string updatedBy      
         [HttpPost("CreateCustomer")]
         [Consumes("application/json")]
-        public IActionResult Create(string password, string surname,string firstName,string address1,string postcode,string town,string phoneNumber1,string email,DateTime dtChanged,string updatedBy)
+        public IActionResult Create(Customer customer)
         {
             try
             {                               
-                    Customer customer = new Customer(password, surname, firstName, address1, postcode, town, phoneNumber1, email, dtChanged, updatedBy);
+                   // Customer customer = new Customer(password, surname, firstName, address1, postcode, town, phoneNumber1, email, dtChanged, updatedBy);
                     if (vs.IsValid(customer))
                     {
                         db1.Create(customer);
@@ -64,30 +66,57 @@ namespace WebAPI.Controllers
                     }
                     else throw new Exception("Null values");                          
             }
-            catch(Exception ex) { return GetError(ex); }
+            catch(Exception ex) 
+            {
+                List<ValidMess> _valid = new List<ValidMess>();
+                _valid.Add(new ValidMess()
+                {
+                    Code = BadRequest().StatusCode,
+                    Message = BadRequest().ToString()
+                });
+                Response res = new Response()
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message,
+                    ValidationMessage = _valid,
+                    CustomerNumber = customer.CustomerNumber
+                };
+                return BadRequest(res);
+            }
         }
-        //PUT action        
+        //PUT action       int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg  
         [HttpPost("UpdateCustomer")]
         [Consumes("application/json")]
-        public IActionResult Update(int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg)
+        public IActionResult Update(UpdateCustomer ucustomer)
         {
             try
             {
-                if (vs.IsValid(id))
+                if (vs.IsValid(ucustomer.CustomerNumber))
                 {
-                    db1.Update(id, address1, postcode, town, phonenum1, email, datechg);
+                    db1.Update(ucustomer);
                     db1.Save();                   
-                    return Success(true,id);
+                    return Success(true,ucustomer.CustomerNumber);
                 }
-                else throw new Exception("id can not be <1");
+                else throw new Exception("id can not be 0");
                                
             }
             catch(Exception ex) 
             {               
-                return GetError(ex);
-                //return BadRequest("Code: "+BadRequest().StatusCode.ToString()+"\nError text: "+ex.Message+"\n Customer number to update: "+id.ToString()); 
+                List<ValidMess> _valid = new List<ValidMess>();
+                _valid.Add(new ValidMess() 
+                { 
+                    Code = BadRequest().StatusCode,
+                    Message = BadRequest().ToString()
+                });
+                Response res = new Response()
+                {
+                    Success = false, ErrorMessage = ex.Message, 
+                    ValidationMessage = _valid,
+                    CustomerNumber = ucustomer.CustomerNumber                    
+                };                
+                return BadRequest(res);                
             }  
-            //catch(Exception ex) { return "Error: "+ex.Message; }
+            
         }
         //DELETE action
         [HttpDelete]
@@ -107,25 +136,34 @@ namespace WebAPI.Controllers
             }
         }
         [HttpGet("error")]
-        public IActionResult GetError(Exception ex)
+        public JsonResult GetError(Exception ex)
         {
+            List<ValidMess> _valid = new List<ValidMess>();
+            _valid.Add(new ValidMess() 
+            { 
+                Code = BadRequest().StatusCode, 
+                Message = BadRequest().ToString() 
+            });
             string result = "";
             response.Success = false;
             response.ErrorMessage = ex.Message;
-            response.ValidationMessage.Add(BadRequest().StatusCode, BadRequest().ToString());
-            foreach (var item in response.ValidationMessage)
+            response.ValidationMessage= _valid;
+            /*foreach (var item in response.ValidationMessage)
             {
                 result += "Code: " + item.Key + " Name: " + item.Value;
-            }
+            }*/
             Object[] ArrayOfObjects = new Object[] { "Success "+response.Success.ToString(), response.ErrorMessage, result };
-            return BadRequest(ArrayOfObjects);
+            return new JsonResult(response);
         }
         [HttpGet("Success")]
-        public IActionResult Success(bool success, int id)
+        public JsonResult Success(bool success, int id)
         {
             Object[] SuccessObject = new Object[] { "Success "+success.ToString(), "Customer number: "+id };
-            return Ok(SuccessObject);
+            //return Ok(SuccessObject);
+           
+            return new JsonResult(SuccessObject);
         }
+        
 
 
     }

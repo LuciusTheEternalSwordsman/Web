@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace WebAPI.Services
 {
-    public class CustomerService : IRepository<Customer>
+    public class CustomerService : IRepository<Customer,UpdateCustomer>
     {
         private CustomerContext db;
         public CustomerService(CustomerContext context)
@@ -33,24 +33,25 @@ namespace WebAPI.Services
         {    
             db.Customers.Add(customer);
         }
-        public void Update(int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg)
+        //int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg
+        public void Update(UpdateCustomer ucustomer)
         {
             try
             {
-                Customer customer = db.Customers.Find(id);
-                if (address1 != null)
-                    customer.Address1 = address1;
-                if (postcode != null)
-                    customer.Postcode = postcode;
-                if (town != null)
-                    customer.Town = town;
-                if (phonenum1 != null)
-                    customer.PhoneNumber1 = phonenum1;
-                if (email != null)
-                    customer.EmailAdress = email;
+                Customer customer = db.Customers.Find(ucustomer.CustomerNumber);
+                if (ucustomer.Address1 != null)
+                    customer.Address1 = ucustomer.Address1;
+                if (ucustomer.Postcode != null)
+                    customer.Postcode = ucustomer.Postcode;
+                if (ucustomer.Town != null)
+                    customer.Town = ucustomer.Town;
+                if (ucustomer.PhoneNumber1 != null)
+                    customer.PhoneNumber1 = ucustomer.PhoneNumber1;
+                if (ucustomer.EmailAddress != null)
+                    customer.EmailAdress = ucustomer.EmailAddress;
                 DateTime dt = new DateTime();
-                if (DateTime.TryParse(datechg.ToString(),out dt)==false)
-                    customer.Datetime = datechg;
+                if (DateTime.TryParse(ucustomer.DateChanged.ToString(),out dt)==false)
+                    customer.Datetime = ucustomer.DateChanged;
                 db.Entry(customer).State = EntityState.Modified;
             }
             catch(Exception ex) {  }
