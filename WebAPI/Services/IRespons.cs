@@ -7,8 +7,9 @@ namespace WebAPI.Services
 {
     interface IRespons<T>
         where T:class
+        
     {
-        T FResponse(bool success);
-        T TResponse(bool succes);
+        Object FResponse(bool success,string ex,List<T> valid,int cus);
+        
     }
 }

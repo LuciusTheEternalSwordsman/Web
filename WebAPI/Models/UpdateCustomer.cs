@@ -8,7 +8,7 @@ namespace WebAPI.Models
 {
     public class UpdateCustomer
     {
-        [Key]
+        [Key][Required]
         public int CustomerNumber { get; set; }
         [MaxLength(100)]
         public string Address1 { get; set; }

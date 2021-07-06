@@ -6,15 +6,22 @@ using WebAPI.Models;
 
 namespace WebAPI.Services
 {
-    public class ResponseService : IRespons<Response>
+    public class ResponseService : IRespons<ValidMess>
     {
-        public Response FResponse(bool success)
+        public Object FResponse(bool success,string ex, List<ValidMess> valid,int cus)
         {
-            return 
-        }
-        public Response TResponse(bool success)
-        {
-            return
-        }
+            if (success) 
+            {                
+                var result = new { Success = success, CustomerNumber = cus};
+                return result; 
+            }
+            else return new Response()
+            {
+                Success = success,
+                ErrorMessage = ex,
+                ValidationMessage = valid,
+                CustomerNumber = cus
+            }; ;
+        }        
     }
 }

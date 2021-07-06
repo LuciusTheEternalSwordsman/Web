@@ -20,12 +20,13 @@ namespace WebAPI.Controllers
        
         IRepository<Customer,UpdateCustomer> db1;
         IValidator<Customer> vs;
-        Response response;
+        IRespons<ValidMess> res;
+        
         public CustomerController(CustomerContext context)
         {            
             db1 = new CustomerService(context);
             vs = new ValidationService();
-            response = new Response() { Success = true, ErrorMessage = "", ValidationMessage = new List<ValidMess>(), CustomerNumber = 0 };
+            res = new ResponseService();
         }
         //GET all action
         [HttpGet]
@@ -56,32 +57,30 @@ namespace WebAPI.Controllers
         public IActionResult Create(Customer customer)
         {
             try
-            {                               
-                   // Customer customer = new Customer(password, surname, firstName, address1, postcode, town, phoneNumber1, email, dtChanged, updatedBy);
+            {                    
                     if (vs.IsValid(customer))
                     {
-                        db1.Create(customer);
-                        db1.Save();
-                        return Success(true, customer.CustomerNumber);
+                    List<ValidMess> _valid = new List<ValidMess>();
+                    _valid.Add(new ValidMess()
+                    {
+                        Code = Ok().StatusCode,
+                        Message = Ok().ToString()
+                    });
+                    db1.Create(customer);
+                    db1.Save();
+                    return Ok(res.FResponse(true,"Ok",_valid,customer.CustomerNumber));
                     }
                     else throw new Exception("Null values");                          
             }
             catch(Exception ex) 
-            {
+            {                
                 List<ValidMess> _valid = new List<ValidMess>();
                 _valid.Add(new ValidMess()
                 {
                     Code = BadRequest().StatusCode,
                     Message = BadRequest().ToString()
-                });
-                Response res = new Response()
-                {
-                    Success = false,
-                    ErrorMessage = ex.Message,
-                    ValidationMessage = _valid,
-                    CustomerNumber = customer.CustomerNumber
-                };
-                return BadRequest(res);
+                });                
+                return BadRequest(res.FResponse(false,ex.Message,_valid,customer.CustomerNumber));
             }
         }
         //PUT action       int id, string address1, string postcode, string town, string phonenum1, string email, DateTime datechg  
@@ -95,7 +94,7 @@ namespace WebAPI.Controllers
                 {
                     db1.Update(ucustomer);
                     db1.Save();                   
-                    return Success(true,ucustomer.CustomerNumber);
+                    return Ok(res.FResponse(true,"",null,ucustomer.CustomerNumber));
                 }
                 else throw new Exception("id can not be 0");
                                
@@ -107,20 +106,13 @@ namespace WebAPI.Controllers
                 { 
                     Code = BadRequest().StatusCode,
                     Message = BadRequest().ToString()
-                });
-                Response res = new Response()
-                {
-                    Success = false, ErrorMessage = ex.Message, 
-                    ValidationMessage = _valid,
-                    CustomerNumber = ucustomer.CustomerNumber                    
-                };                
-                return BadRequest(res);                
+                });  
+                return BadRequest(res.FResponse(false,ex.Message,_valid,ucustomer.CustomerNumber));                
             }  
             
         }
         //DELETE action
-        [HttpDelete]
-        [Consumes("application/json")]
+        [HttpDelete]        
         public IActionResult Delete(int id)
         {
             try
@@ -128,14 +120,22 @@ namespace WebAPI.Controllers
                 var customer = db1.GetCustomer(id);
                 if (customer is null) return NotFound();
                 db1.Delete(id);
+                db1.Save();
                 return NoContent();
             }
             catch(Exception ex)
             {
                 return BadRequest(ex.Message);
             }
-        }
-        [HttpGet("error")]
+        }       
+       
+        
+
+
+    }
+}
+/*
+  [HttpGet("error")]
         public JsonResult GetError(Exception ex)
         {
             List<ValidMess> _valid = new List<ValidMess>();
@@ -148,14 +148,12 @@ namespace WebAPI.Controllers
             response.Success = false;
             response.ErrorMessage = ex.Message;
             response.ValidationMessage= _valid;
-            /*foreach (var item in response.ValidationMessage)
-            {
-                result += "Code: " + item.Key + " Name: " + item.Value;
-            }*/
+           
             Object[] ArrayOfObjects = new Object[] { "Success "+response.Success.ToString(), response.ErrorMessage, result };
             return new JsonResult(response);
         }
-        [HttpGet("Success")]
+
+  [HttpGet("Success")]
         public JsonResult Success(bool success, int id)
         {
             Object[] SuccessObject = new Object[] { "Success "+success.ToString(), "Customer number: "+id };
@@ -163,12 +161,6 @@ namespace WebAPI.Controllers
            
             return new JsonResult(SuccessObject);
         }
-        
-
-
-    }
-}
-/*
   public IActionResult Update(int id, Customer customer)
         {
             try

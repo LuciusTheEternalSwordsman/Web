@@ -54,11 +54,11 @@ namespace WebAPI.Services
                     customer.Datetime = ucustomer.DateChanged;
                 db.Entry(customer).State = EntityState.Modified;
             }
-            catch(Exception ex) {  }
+            catch(Exception ex) { throw ex; }
         }
         public void Delete(int id)
         {
-            Customer customer = db.Customers.Find(id);
+            var customer = db.Customers.FirstOrDefault(p => p.CustomerNumber == id);
             if (customer != null) db.Customers.Remove(customer); 
         }
         public void Save()
