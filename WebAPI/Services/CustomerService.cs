@@ -15,8 +15,7 @@ namespace WebAPI.Services
             this.db = context;
         }
         public IEnumerable<Customer> GetCustomersList()
-        {
-            //using (CustomerContext context = new CustomerContext())        {           }
+        {            
             return db.Customers;
         }
         public IAsyncEnumerable<Customer> GetCustomersAsyncList()
@@ -72,9 +71,3 @@ namespace WebAPI.Services
         }
     }
 }
-/*
- public void Update(Customer customer)
-        {
-            db.Entry(customer).State = EntityState.Modified;
-        }
- */

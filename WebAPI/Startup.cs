@@ -32,7 +32,6 @@ namespace WebAPI
             //получене 
             string connection = Configuration.GetConnectionString("PostgreConnectionString");
             services.AddDbContext<CustomerContext>(options => options.UseNpgsql(connection));
-            //services.AddDbContext<CustomerContext>(opt => opt.UseInMemoryDatabase("CustomerList"));
             services.AddControllers(); 
             services.AddSwaggerGen(c =>
             { 

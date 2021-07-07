@@ -31,13 +31,6 @@ namespace WebAPI.Models
         public DateTime Datetime { get; set; }
         [MaxLength(255)] [Required]
         public string UpdatedBy { get; set; }
-        /*public Customer(string password, string surname, string firstNames, string address1, string postcode, string town, string phoneNumber1, string emailAdress, DateTime datetime, string updatedBy) 
-        {
-            Password = password; Surname = surname; FirstNames = firstNames;
-            Address1 = address1; Postcode = postcode; Town = town;
-            PhoneNumber1 = phoneNumber1; EmailAdress = emailAdress; Datetime = datetime;
-            UpdatedBy = updatedBy;
-        }*/
-            
+                    
     }
 }
